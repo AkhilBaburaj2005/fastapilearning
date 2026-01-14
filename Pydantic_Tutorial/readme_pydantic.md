@@ -100,7 +100,36 @@ class Patient(BaseModel):
         return round(self.weight / (self.height ** 2), 2)
 ```
 
-### 8. Model Instances & Dictionary Unpacking
+### 8. Nested Models (p7)
+Models can be used as types for fields within other models, allowing you to create complex, hierarchical data structures.
+- **Hierarchical Validation**: Pydantic recursively validates nested data.
+- **Clean Structure**: Perfect for grouping related fields like addresses or contact info.
+
+```python
+class Address(BaseModel):
+    city: str
+    pincode: int
+
+class Patient(BaseModel):
+    name: str
+    address: Address
+```
+
+### 9. Model Serialization (p8)
+Convert your models back into standard Python dictionaries or JSON strings for storage or API responses.
+- **`model_dump()`**: Converts the model instance to a Python `dict`.
+- **`model_dump_json()`**: Converts the model instance to a JSON `str`.
+- **Advanced Filtering**: Use `exclude`, `include`, or `exclude_unset` to control which fields are serialized.
+
+```python
+# Create a dict, excluding specific fields
+data_dict = patient.model_dump(exclude=['name'])
+
+# Create a JSON string
+json_str = patient.model_dump_json()
+```
+
+### 10. Model Instances & Dictionary Unpacking
 Create instances by unpacking dictionaries—perfect for processing JSON API payloads.
 
 ```python
@@ -118,6 +147,8 @@ patient = Patient(**patient_info)
 - **`pydantic_p4_field_Validator.py`**: Custom field-level validation logic using `@field_validator`.
 - **`pydantic_p5_model_validator.py`**: Cross-field model-level validation using `@model_validator`.
 - **`pydantic_p6_computed_fields.py`**: Using `@computed_field` for dynamically calculated attributes.
+- **`pydantic_p7_nested_models.py`**: Implementing hierarchical data structures with nested `BaseModel` classes.
+- **`pydantic_p8_serialization.py`**: Converting models to dictionaries and JSON using `model_dump` and `model_dump_json`.
 
 ## 🛠️ Installation & Usage
 
@@ -130,5 +161,5 @@ pip install "pydantic[email]"
 ### 🏃 Running the Scripts
 Run any tutorial script using the Python interpreter:
 ```bash
-python pydantic_p6_computed_fields.py
+python pydantic_p8_serialization.py
 ```
