@@ -37,21 +37,70 @@ Pydantic provides specialized types for common data formats:
 - **`AnyUrl`**: Validates strings as valid URLs.
 
 ### 4. Advanced Field Validation (p3)
-Using the `Field` class, you can add powerful constraints to your data:
+Using the `Field` class and `Annotated`, you can add powerful constraints and metadata to your data:
 - **Numeric Constraints**: `gt` (greater than), `ge` (greater or equal), `lt` (less than), `le` (less or equal).
 - **String/List Constraints**: `max_length`, `min_length`.
 - **Custom Metadata**: Adding descriptions or default values via `Field(default=...)`.
+- **Modern Syntax**: Using `Annotated` for cleaner field definitions.
 
 ```python
 from pydantic import Field
+from typing import Annotated
 
 class Patient(BaseModel):
     age: int = Field(gt=0, lt=120)
-    weight: float = Field(gt=0)
+    weight: Annotated[float, Field(gt=0, strict=True)]
     allergies: Optional[List[str]] = Field(default=None, max_length=5)
 ```
 
-### 5. Model Instances & Dictionary Unpacking
+### 5. Custom Field Validators (p4)
+When built-in constraints aren't enough, `@field_validator` allows you to write custom logic for specific fields.
+- **Data Transformation**: e.g., converting names to uppercase.
+- **Complex Logic**: e.g., validating email domains or custom age ranges.
+- **Execution Mode**: Using `mode='after'` or `mode='before'`.
+
+```python
+from pydantic import field_validator
+
+@field_validator('name')
+@classmethod
+def name_validator(cls, value):
+    return value.upper()
+```
+
+### 6. Model-Level Validators (p5)
+Use `@model_validator` to validate logic that depends on multiple fields simultaneously.
+- **Cross-field Validation**: e.g., requiring an emergency contact only if the patient is over a certain age.
+
+```python
+from pydantic import model_validator
+
+@model_validator(mode='after')
+def validate_emergency_contact(cls, model):
+    if model.age > 60 and 'emergency' not in model.contact_details:
+        raise ValueError('Patients older than 60 must have an emergency contact')
+    return model
+```
+
+### 7. Computed Fields (p6)
+Pydantic allows you to include properties in your model's output using the `@computed_field` decorator. 
+- **Dynamic Calculation**: Useful for fields derived from other attributes, like calculating BMI from weight and height.
+- **Serialized Output**: Properties decorated with `@computed_field` are included when converting the model to a dictionary or JSON.
+
+```python
+from pydantic import computed_field
+
+class Patient(BaseModel):
+    weight: float
+    height: float
+
+    @computed_field
+    @property
+    def bmi(self) -> float:
+        return round(self.weight / (self.height ** 2), 2)
+```
+
+### 8. Model Instances & Dictionary Unpacking
 Create instances by unpacking dictionaries—perfect for processing JSON API payloads.
 
 ```python
@@ -66,6 +115,9 @@ patient = Patient(**patient_info)
 - **`pydantic_p1_intro.py`**: Introduction to `BaseModel` and basic string/integer validation.
 - **`pydantic_p2.py`**: Deep dive into advanced types like `List`, `Dict`, `Optional`, and default values.
 - **`pydantic_p3.py`**: Advanced validation using `EmailStr`, `AnyUrl`, and the `Field` class for constraints.
+- **`pydantic_p4_field_Validator.py`**: Custom field-level validation logic using `@field_validator`.
+- **`pydantic_p5_model_validator.py`**: Cross-field model-level validation using `@model_validator`.
+- **`pydantic_p6_computed_fields.py`**: Using `@computed_field` for dynamically calculated attributes.
 
 ## 🛠️ Installation & Usage
 
@@ -78,5 +130,5 @@ pip install "pydantic[email]"
 ### 🏃 Running the Scripts
 Run any tutorial script using the Python interpreter:
 ```bash
-python pydantic_p3.py
+python pydantic_p6_computed_fields.py
 ```
